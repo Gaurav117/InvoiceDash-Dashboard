@@ -6,6 +6,8 @@ import { parseInvoiceText } from "@/lib/invoice-parser";
 import { prisma } from "@/lib/prisma";
 import fs from "fs";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
