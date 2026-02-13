@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { parseInvoiceText } from "@/lib/invoice-parser";
 import { prisma } from "@/lib/prisma";
-import fs from "fs";
 
 export const dynamic = 'force-dynamic';
 
@@ -19,22 +16,12 @@ export async function POST(req: NextRequest) {
 
         const results = [];
 
-        // Ensure uploads directory exists
-        const uploadDir = path.join(process.cwd(), "uploads");
-        if (!fs.existsSync(uploadDir)) {
-            await mkdir(uploadDir, { recursive: true });
-        }
-
         for (const file of files) {
             try {
                 const buffer = Buffer.from(await file.arrayBuffer());
                 const fileName = `${uuidv4()}-${file.name}`;
-                const filePath = path.join(uploadDir, fileName);
 
-                // Save file locally
-                await writeFile(filePath, buffer);
-
-                // Extract Text
+                // Extract Text (Now using buffer directly, skipping local file write)
                 const pdf = require("pdf-parse/lib/pdf-parse.js");
                 const pdfData = await pdf(buffer);
                 const parsedData = parseInvoiceText(pdfData.text);
