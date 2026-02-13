@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Client {
+  id           String    @id @default(cuid())
+  name         String    @unique
+  gstin        String?
+  invoices     Invoice[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Invoice {
+  id               String     @id @default(cuid())
+  invoiceNumber    String
+  invoiceDate      DateTime
+  supplierName     String
+  supplierGSTIN    String
+  customerName     String
+  customerGSTIN    String?
+  placeOfSupply    String?
+  gstType          String     // "CGST_SGST", "IGST", "UNKNOWN"
+  isGstInclusive   Boolean    @default(false)
+  subtotalBase     Float
+  gstRate          Float      @default(0.18)
+  gstAmount        Float
+  cgstAmount       Float?
+  sgstAmount       Float?
+  igstAmount       Float?
+  totalGross       Float
+  amountPaid       Float?
+  amountPending    Float?
+  status           String     // "PAID", "UNPAID", "PARTIAL", "NEEDS_REVIEW"
+  notes            String?    // Stored as JSON or simple string
+  originalPath     String?
+  
+  clientId         String?
+  client           Client?    @relation(fields: [clientId], references: [id])
+  lineItems        LineItem[]
+  
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@unique([invoiceNumber, supplierGSTIN])
+}
+
+model LineItem {
+  id           String  @id @default(cuid())
+  description  String
+  sacCode      String?
+  qty          Float?
+  rate         Float?
+  amount       Float
+  taxable      Float?
+  
+  invoiceId    String
+  invoice      Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
